@@ -1,9 +1,12 @@
 ## <h1  align = "center"> CLARA BOT </h1>
 
+<img align="right" alt="GIF" src="https://i.imgur.com/a2Vbgxt.png" width="300"/>
+
 ### What it can  do?
+
 it can search and download song from youtube directly on your telegram seamlessly.
 
-<img align="right" alt="GIF" src="https://i.imgur.com/a2Vbgxt.png" width="300"/>
+
 
 ### Installation 
 You need to put essential bot details in [config.json]("https://github.com/typhonshambo/Clara-Music-Bot-Telegram/blob/main/config.json"), for the bot to work properly.
