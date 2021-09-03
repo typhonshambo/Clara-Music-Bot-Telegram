@@ -30,7 +30,7 @@ recommended hosting services
 
 But due to simple framework of the bot, you can host it almost anywhere
 
-## support
+## Support
 - discord - https://discord.gg/m5mSyTV7RR
 - gmail - shamboc04@gmail.com
 
