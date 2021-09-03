@@ -34,7 +34,7 @@ def time_to_seconds(time):
 
 @bot.on_message(filters.command(['start']))
 def start(client, message):
-    darkprince = f'👋 Hello @{message.from_user.username}\n I\'m Clara, developed by Shambo, I can upload songs from YouTube. Type /a song name:'
+    darkprince = f'👋 Hello @{message.from_user.username}\n I\'m Clara, developed by Shambo, I can download songs from YouTube. Type /a song name:'
     message.reply_text(
         text=darkprince, 
         quote=False,
@@ -60,7 +60,7 @@ def a(client, message):
         count = 0
         while len(results) == 0 and count < 6:
             if count>0:
-                time.sleep(1)
+                os.times.sleep(1)
             results = YoutubeSearch(query, max_results=1).to_dict()
             count += 1
         # results = YoutubeSearch(query, max_results=1).to_dict()
