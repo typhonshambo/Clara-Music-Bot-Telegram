@@ -8,7 +8,6 @@ from youtube_search import YoutubeSearch
 import requests
 import json
 import os
-from config import Config
 
 with open('./config.json', 'r') as config:
     data = json.load(config)
