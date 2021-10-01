@@ -28,7 +28,7 @@ recommended hosting services
 - heroku
 - replit
 
-But due to simple framework of the bot, you can host it almost anywhere
+But due to simple framework of the bot, you can host it almost anywhere ! 
 
 ## Support
 - discord - https://discord.gg/m5mSyTV7RR
