@@ -66,7 +66,7 @@ def a(client, message):
         # results = YoutubeSearch(query, max_results=1).to_dict()
         try:
             link = f"https://youtube.com{results[0]['url_suffix']}"
-            # print(results)
+     
             title = results[0]["title"]
             thumbnail = results[0]["thumbnails"][0]
             duration = results[0]["duration"]
@@ -106,7 +106,7 @@ def a(client, message):
         print(e)
     try:
         os.remove(audio_file)
-        #os.remove(thumb_name)
+
     except Exception as e:
         print(e)
 
