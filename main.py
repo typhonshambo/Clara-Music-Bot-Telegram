@@ -77,9 +77,6 @@ def a(client, message):
                 return
 
             views = results[0]["views"]
-            #thumb_name = f'thumb{message.message_id}.jpg'
-            #thumb = requests.get(thumbnail, allow_redirects=True)
-            #open(thumb_name, 'wb').write(thumb.content)
 
         except Exception as e:
             print(e)
