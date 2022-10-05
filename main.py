@@ -3,17 +3,17 @@ from pyrogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup
 )
-import youtube_dl
+import yt_dlp
 from youtube_search import YoutubeSearch
 import requests
-import json
 import os
+import keep_alive
 
-with open('./config.json', 'r') as config:
-    data = json.load(config)
-    bot_token = data['token']
-    api_id = data['api_id']
-    api_hash = data['api_hash']
+
+
+bot_token = os.environ['token']
+api_id = os.environ['api_id']
+api_hash = os.environ['api_hash']
 
 
 bot = Client(
@@ -34,14 +34,14 @@ def time_to_seconds(time):
 
 @bot.on_message(filters.command(['start']))
 def start(client, message):
-    help_text = f'👋 Hello @{message.from_user.username}\n I\'m Clara, developed by Shambo, I can download songs from YouTube. Type /a song name\n e.g - `/a tokyo drift`'
+    darkprince = f'👋 Hello @{message.from_user.username}\n I\'m Clara, developed by Shambo, I can download songs from YouTube. Type /a song name\n e.g - `/a talking to the moon`'
     message.reply_text(
-        text=help_text, 
+        text=darkprince, 
         quote=False,
         reply_markup=InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton('Github', url='https://github.com/typhonshambo'),  
+                    InlineKeyboardButton('Github', url='https://github.com/typhonshambo/Clara-Music-Bot-Telegram'),  
                 ]
             ]
         )
@@ -77,9 +77,9 @@ def a(client, message):
                 return
 
             views = results[0]["views"]
-            thumb_name = f'thumb{message.message_id}.jpg'
-            thumb = requests.get(thumbnail, allow_redirects=True)
-            open(thumb_name, 'wb').write(thumb.content)
+            #thumb_name = f'thumb{message.message_id}.jpg'
+            #thumb = requests.get(thumbnail, allow_redirects=True)
+            #open(thumb_name, 'wb').write(thumb.content)
 
         except Exception as e:
             print(e)
@@ -91,9 +91,9 @@ def a(client, message):
         )
         print(str(e))
         return
-    m.edit("⏬ Downloading.")
+    m.edit("⏬ Downloading...")
     try:
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(link, download=False)
             audio_file = ydl.prepare_filename(info_dict)
             ydl.process_info(info_dict)
@@ -102,15 +102,16 @@ def a(client, message):
         for i in range(len(dur_arr)-1, -1, -1):
             dur += (int(dur_arr[i]) * secmul)
             secmul *= 60
-        message.reply_audio(audio_file, caption=rep, parse_mode='md',quote=False, title=title, duration=dur, thumb=thumb_name)
+        message.reply_audio(audio_file,caption=rep,quote=False, title=title, duration=dur)
         m.delete()
     except Exception as e:
         m.edit('❌ Error')
         print(e)
     try:
         os.remove(audio_file)
-        os.remove(thumb_name)
+        #os.remove(thumb_name)
     except Exception as e:
         print(e)
 
+keep_alive.keep_alive()
 bot.run()
