@@ -1,114 +1,169 @@
-from pyrogram import Client, filters
-from pyrogram.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup
-)
+import os
+import subprocess
+import logging
+from telegram.ext import Updater, CommandHandler
+from pydub import AudioSegment
 import yt_dlp
 from youtube_search import YoutubeSearch
-import requests
-import os
-import keep_alive
+import json
+
+with open("config.json", "r") as f:
+	data = json.load(f)
+	bot_token = data["token"]
 
 
 
-bot_token = os.environ['token']
-api_id = os.environ['api_id']
-api_hash = os.environ['api_hash']
+# Enable logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+					level=logging.INFO)
+
+def start(update, context):
+	context.bot.send_message(chat_id=update.effective_chat.id, text="Hi I'm Clara developed by @shambo04\nI can convert download music from youtube\ntry `/a jaded by sadeyes`")
+
+def convert(update, context):
+	try:
+		# Extract the YouTube link from the user's message
+		youtube_link = update.message.text.split(' ')[1]
+
+		# Download the YouTube video as an MP4 file using youtube-dl
+		def duration_checker(info, *, incomplete):
+			"""Download only videos shorter than 2 minutes (or with unknown duration)"""
+			duration = info.get('duration')
+			if duration and duration > 1800:
+				return 'The video is too long'
+
+		ydl_opts = {
+			'match_filter': duration_checker,
+			'format': 'bestaudio[ext=m4a]'
+		}
+		with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+			info_dict = ydl.extract_info(youtube_link, download=False)
+			audio_file = ydl.prepare_filename(info_dict)
+			ydl.process_info(info_dict)
 
 
-bot = Client(
-    'Clara',
-    bot_token = bot_token,
-    api_id = api_id,
-    api_hash = api_hash
-)
+		# Send the converted MP3 file to the user
+		try:
+			context.bot.send_audio(chat_id=update.effective_chat.id, audio=open(audio_file, "rb"))
+		except:
+			context.bot.send_message(
+				chat_id=update.effective_chat.id, 
+				text="Video lenght exceeded 30 mins"
+			)
+
+		# Clean up temporary files
+		try:
+			os.remove(audio_file)
+		except:
+			pass
+
+	except Exception as e:
+		logging.error(str(e))
+		context.bot.send_message(chat_id=update.effective_chat.id, text="An error occurred while converting the video.")
+
+def a(update, context):
+	query = update.message.text[3:]
+	context.bot.send_message(
+		chat_id=update.effective_chat.id, 
+		text="🔎 Searching the song..."
+	)
+	def duration_checker(info, *, incomplete):
+		"""Download only videos shorter than 2 minutes (or with unknown duration)"""
+		duration = info.get('duration')
+		if duration and duration > 1800:
+			return 'The video is too long'
+
+	ydl_opts = {
+		'match_filter': duration_checker,
+		'format': 'bestaudio[ext=m4a]'
+	}
+
+	try:
+		results = []
+		count = 0
+		while len(results) == 0 and count < 6:
+			if count>0:
+				os.times.sleep(1)
+			results = YoutubeSearch(query, max_results=1).to_dict()
+			count += 1
+		# results = YoutubeSearch(query, max_results=1).to_dict()
+		try:
+			link = f"https://youtube.com{results[0]['url_suffix']}"
+	
+			title = results[0]["title"]
+			thumbnail = results[0]["thumbnails"][0]
+			duration = results[0]["duration"]
+			views = results[0]["views"]
+
+		except Exception as e:
+			print(e)
+			context.bot.send_message(
+				chat_id=update.effective_chat.id, 
+				text="Found Nothing!\nTry checking the spelling!"
+			)
+	except Exception as e:
+		context.bot.send_message(
+			chat_id=update.effective_chat.id, 
+			text="Found Nothing!\nTry checking the spelling!"
+		)
+		print(str(e))
+
+	context.bot.send_message(
+		chat_id=update.effective_chat.id, 
+		text="Downloading..."
+	)
+	try:
+		with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+			info_dict = ydl.extract_info(link, download=False)
+			audio_file = ydl.prepare_filename(info_dict)
+			ydl.process_info(info_dict)
+
+
+		# Send the converted MP3 file to the user
+		try:
+			context.bot.send_audio(chat_id=update.effective_chat.id, audio=open(audio_file, "rb"))
+		except:
+			context.bot.send_message(
+				chat_id=update.effective_chat.id, 
+				text="Video lenght exceeded 30 mins"
+			)
+
+		# Clean up temporary files
+		try:
+			os.remove(audio_file)
+		except:
+			pass
+	except Exception as e:
+		print(e)
+	try:
+		os.remove(audio_file)
+
+	except Exception as e:
+		print(e)
 
 
 
-# Convert hh:mm:ss to seconds
-def time_to_seconds(time):
-    stringt = str(time)
-    return sum(int(x) * 60 ** i for i, x in enumerate(reversed(stringt.split(':'))))
 
 
 
-@bot.on_message(filters.command(['start']))
-def start(client, message):
-    darkprince = f'👋 Hello @{message.from_user.username}\n I\'m Clara, developed by Shambo, I can download songs from YouTube. Type /a song name\n e.g - `/a talking to the moon`'
-    message.reply_text(
-        text=darkprince, 
-        quote=False,
-        reply_markup=InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton('Github', url='https://github.com/typhonshambo/Clara-Music-Bot-Telegram'),  
-                ]
-            ]
-        )
-    )
+def main():
+	# Create an instance of the Updater class
+	updater = Updater(token=bot_token, use_context=True)
 
-@bot.on_message(filters.command(['a']))
-def a(client, message):
-    query = ''
-    for i in message.command[1:]:
-        query += ' ' + str(i)
-    print(query)
-    m = message.reply('🔎 Searching the song...')
-    ydl_opts = {"format": "bestaudio[ext=m4a]"}
-    try:
-        results = []
-        count = 0
-        while len(results) == 0 and count < 6:
-            if count>0:
-                os.times.sleep(1)
-            results = YoutubeSearch(query, max_results=1).to_dict()
-            count += 1
-        # results = YoutubeSearch(query, max_results=1).to_dict()
-        try:
-            link = f"https://youtube.com{results[0]['url_suffix']}"
-     
-            title = results[0]["title"]
-            thumbnail = results[0]["thumbnails"][0]
-            duration = results[0]["duration"]
+	# Get the dispatcher to register handlers
+	dispatcher = updater.dispatcher
 
-            ## UNCOMMENT THIS IF YOU WANT A LIMIT ON DURATION. CHANGE 1800 TO YOUR OWN PREFFERED DURATION AND EDIT THE MESSAGE (30 minutes cap) LIMIT IN SECONDS
-            if time_to_seconds(duration) >= 1800:  # duration limit
-                m.edit("Exceeded video duration limit : 30 mins")
-                return
+	# Register command handlers
+	dispatcher.add_handler(CommandHandler("start", start))
+	dispatcher.add_handler(CommandHandler("convert", convert))
+	dispatcher.add_handler(CommandHandler("a", a))
 
-            views = results[0]["views"]
+	# Start the bot
+	updater.start_polling()
 
-        except Exception as e:
-            print(e)
-            m.edit('Found nothing. Try changing the spelling a little.')
-            return
-    except Exception as e:
-        m.edit(
-            "✖️ Found Nothing. Sorry.\n\nTry another keywork or maybe spell it properly."
-        )
-        print(str(e))
-        return
-    m.edit("⏬ Downloading...")
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(link, download=False)
-            audio_file = ydl.prepare_filename(info_dict)
-            ydl.process_info(info_dict)
-        rep = f'🎧 **Title**: [{title[:35]}]({link})\n⏳ **Duration**: `{duration}`\n👁‍🗨 **Views**: `{views}`'
-        secmul, dur, dur_arr = 1, 0, duration.split(':')
-        for i in range(len(dur_arr)-1, -1, -1):
-            dur += (int(dur_arr[i]) * secmul)
-            secmul *= 60
-        message.reply_audio(audio_file,caption=rep,quote=False, title=title, duration=dur)
-        m.delete()
-    except Exception as e:
-        m.edit('❌ Error')
-        print(e)
-    try:
-        os.remove(audio_file)
+	# Run the bot until you press Ctrl-C to stop it
+	updater.idle()
 
-    except Exception as e:
-        print(e)
+if __name__ == '__main__':
+	main()
 
-keep_alive.keep_alive()
-bot.run()

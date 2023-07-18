@@ -1,5 +1,4 @@
-TgCrypto
-Pyrogram
 yt_dlp
 youtube_search
 requests
+python-telegram-bot==13.15

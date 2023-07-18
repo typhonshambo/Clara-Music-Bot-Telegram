@@ -18,8 +18,6 @@ You need to put essential bot details in [config.json]("https://github.com/typho
 ```json
 {
     "token" : "Your-Bot-Token-here",
-    "api_id" : "Api-id",
-    "api_hash" : "Api-hash"
 }
 ```
 
